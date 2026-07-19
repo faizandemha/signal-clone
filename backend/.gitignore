@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.env
+signal_clone.db
+signal_clone.db-journal
+venv/
+.venv/
+uploads/
