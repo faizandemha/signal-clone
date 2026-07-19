@@ -129,26 +129,18 @@ export default function LoginPage() {
                 {loading ? "Sending code…" : "Continue"}
               </button>
               <p className="text-center text-xs text-signal-textMuted">
-                A real email address gets an actual verification code if the server has email sending
-                configured. Phone numbers and usernames (like the demo accounts) always use a mocked code
-                shown on the next screen instead.
+                Verification is mocked for this demo — the code will be shown directly on the next screen,
+                no real email or SMS is sent.
               </p>
             </form>
           )}
 
           {step === "otp" && (
             <form onSubmit={submitOtp} className="flex flex-col gap-4">
-              {otpHint ? (
-                <div className="flex items-center gap-2 rounded-lg bg-signal-blue/10 px-3 py-2 text-xs text-signal-blue">
-                  <ShieldCheck size={16} />
-                  <span>Demo OTP: <strong>{otpHint}</strong> (this identifier isn't a real inbox/phone, or the server isn't set up to send yet, so the code is shown here instead)</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 rounded-lg bg-green-500/10 px-3 py-2 text-xs text-green-600 dark:text-green-400">
-                  <ShieldCheck size={16} />
-                  <span>We sent a real code to <strong>{identifier}</strong> — check your inbox or messages.</span>
-                </div>
-              )}
+              <div className="flex items-center gap-2 rounded-lg bg-signal-blue/10 px-3 py-2 text-xs text-signal-blue">
+                <ShieldCheck size={16} />
+                <span>Demo OTP: <strong>{otpHint}</strong> (verification is mocked for this demo, so the code is shown here instead of being emailed/texted)</span>
+              </div>
               <div>
                 <label className="mb-1.5 block text-sm font-medium">Enter the 6-digit code</label>
                 <input

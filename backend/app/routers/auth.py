@@ -1,5 +1,3 @@
-import random
-import smtplib
 from datetime import datetime
 from typing import List
 
@@ -10,7 +8,6 @@ from app import models, schemas
 from app.config import MOCK_OTP
 from app.database import get_db
 from app.device import label_for_user_agent
-from app.email_service import is_email, maybe_send_real_otp
 from app.security import get_current_session, get_current_user
 from app.websocket_manager import manager
 
@@ -24,33 +21,19 @@ def request_otp(payload: schemas.RegisterRequest, db: DBSession = Depends(get_db
     Works for both brand-new users and returning users (i.e. this endpoint
     doubles as "login" - Signal's real flow is unified the same way).
 
-    - Email address + SMTP configured (app/email_service.py) -> real email.
-    - Anything else (phone numbers, usernames, or SMTP not configured) ->
-      falls back to the fixed MOCK_OTP, returned directly in the response.
-      This is what keeps the seeded demo accounts (alice/bob/..., and the
-      phone-number account +12125550123) working without any provider setup.
-      Phone-number login/signup is fully supported end to end - it just
-      always uses the mocked code shown on screen rather than a real text,
-      by design (no SMS provider is wired up).
+    Verification is mocked for every identifier type (email, phone, or
+    username) - a fixed code is generated and returned directly in the
+    response rather than actually delivered, per the assignment spec
+    ("verification can be mocked with a fixed OTP"). This is what keeps the
+    seeded demo accounts (alice/bob/..., and the phone-number account
+    +12125550123) working without any external provider setup.
     """
     identifier = payload.identifier.strip()
-    otp_candidate = f"{random.randint(0, 999999):06d}"
-    real_sent = False
 
-    if is_email(identifier):
-        try:
-            real_sent = maybe_send_real_otp(identifier, otp_candidate)
-        except (smtplib.SMTPException, OSError) as exc:
-            raise HTTPException(status_code=502, detail=f"Couldn't send verification email: {exc}")
-
-    otp = otp_candidate if real_sent else MOCK_OTP
-
-    db.add(models.OtpRequest(identifier=identifier, otp=otp))
+    db.add(models.OtpRequest(identifier=identifier, otp=MOCK_OTP))
     db.commit()
 
-    if real_sent:
-        return schemas.RequestOtpResponse(message=f"Verification code sent to {identifier}", otp_hint=None)
-    return schemas.RequestOtpResponse(message="OTP sent (mocked)", otp_hint=otp)
+    return schemas.RequestOtpResponse(message="OTP sent (mocked)", otp_hint=MOCK_OTP)
 
 
 @router.post("/verify", response_model=schemas.AuthResponse)
